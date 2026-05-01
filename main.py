@@ -8,7 +8,7 @@ from threading import Thread
 from flask import Flask
 
 # -----------------------------
-# Discord webhook
+# Discord webhook (FROM RENDER ENV)
 # -----------------------------
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 
@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 
 # -----------------------------
-# Web server (FIX FOR RENDER)
+# Health check route (REQUIRED FOR RENDER)
 # -----------------------------
 @app.route("/")
 def home():
@@ -42,7 +42,7 @@ def save_seen(seen):
         with open(SEEN_FILE, "w") as f:
             json.dump(list(seen), f)
     except Exception as e:
-        print("Failed to save seen:", e)
+        print("Save error:", e)
 
 
 seen = load_seen()
@@ -89,42 +89,4 @@ def process(csv_text):
         if "LULD" not in reason:
             continue
 
-        key = f"{symbol}-{reason}"
-
-        if key in seen:
-            continue
-
-        seen.add(key)
-        save_seen(seen)
-
-        send_discord(
-            "🚨 NYSE LULD HALT\n"
-            f"Symbol: {symbol}\n"
-            f"Reason: {reason}"
-        )
-
-
-# -----------------------------
-# Bot loop (background thread)
-# -----------------------------
-def bot_loop():
-    print("LULD bot running...")
-
-    while True:
-        try:
-            csv_text = fetch_data()
-            process(csv_text)
-        except Exception as e:
-            print("Error:", e)
-
-        time.sleep(10)
-
-
-# -----------------------------
-# Start everything
-# -----------------------------
-if __name__ == "__main__":
-    Thread(target=bot_loop, daemon=True).start()
-
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+        key = f"{symbol}-{reason
