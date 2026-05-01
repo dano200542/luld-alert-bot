@@ -8,7 +8,7 @@ from threading import Thread
 from flask import Flask
 
 # -----------------------------
-# Discord webhook (FROM RENDER ENV)
+# ENV VAR (DO NOT HARD CODE WEBHOOK)
 # -----------------------------
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 
@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 
 # -----------------------------
-# Health check route (REQUIRED FOR RENDER)
+# REQUIRED HEALTH CHECK ROUTE
 # -----------------------------
 @app.route("/")
 def home():
@@ -27,7 +27,7 @@ def home():
 
 
 # -----------------------------
-# Load / Save seen alerts
+# SAFE FILE STORAGE
 # -----------------------------
 def load_seen():
     try:
@@ -41,15 +41,15 @@ def save_seen(seen):
     try:
         with open(SEEN_FILE, "w") as f:
             json.dump(list(seen), f)
-    except Exception as e:
-        print("Save error:", e)
+    except:
+        pass
 
 
 seen = load_seen()
 
 
 # -----------------------------
-# Discord sender
+# DISCORD SENDER
 # -----------------------------
 def send_discord(msg):
     if not WEBHOOK_URL:
@@ -63,7 +63,7 @@ def send_discord(msg):
 
 
 # -----------------------------
-# Fetch NYSE data
+# FETCH DATA
 # -----------------------------
 def fetch_data():
     r = requests.get(URL, timeout=10)
@@ -72,7 +72,7 @@ def fetch_data():
 
 
 # -----------------------------
-# Process data
+# PROCESS DATA
 # -----------------------------
 def process(csv_text):
     global seen
@@ -80,13 +80,4 @@ def process(csv_text):
     reader = csv.DictReader(StringIO(csv_text))
 
     for row in reader:
-        symbol = row.get("Symbol") or row.get("symbol")
-        reason = (row.get("Reason") or row.get("reason") or "").upper()
-
-        if not symbol:
-            continue
-
-        if "LULD" not in reason:
-            continue
-
-        key = f"{symbol}-{reason
+        symbol = row.get("Symbol") or
