@@ -54,6 +54,9 @@ def process(csv_text):
         )
 
 def main():
+    print("Starting LULD bot...")
+    time.sleep(3)
+
     print("LULD bot running...")
 
     while True:
