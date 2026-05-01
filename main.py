@@ -1,28 +1,26 @@
-import os
 import requests
-from flask import Flask
+import os
 
-app = Flask(__name__)
+API_KEY = os.environ["GCAqzGwvpveABEjg92lZszGhAtbGJVYp"]
+WEBHOOK = os.environ["https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoLA"]
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoLA"
+# Example symbols to watch (we expand later)
+symbols = ["AAPL", "TSLA", "NVDA"]
 
-@app.route("/")
-def home():
-    print("DISCORD ABOUT TO FIRE")
+def send(msg):
+    requests.post(WEBHOOK, json={"content": msg})
 
-    try:
-        r = requests.post(
-            WEBHOOK_URL,
-            json={"content": "🚨 TEST FROM RENDER"},
-            timeout=10
-        )
-        print("STATUS CODE:", r.status_code)
-        print("RESPONSE:", r.text)
-    except Exception as e:
-        print("ERROR:", e)
+for symbol in symbols:
+    url = f"https://api.massive.com/v1/quote/{symbol}?apikey={API_KEY}"
+    r = requests.get(url).json()
 
-    return "OK - LIVE"
+    price = r.get("price", 0)
+    change = r.get("changePercent", 0)
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    # 🚨 Spike detection (proxy for LULD)
+    if abs(change) > 5:
+        send(f"🚨 BIG MOVE: {symbol} {change:.2f}%")
+
+    # 🚨 Halt detection (if API provides status field)
+    if r.get("status") == "halted":
+        send(f"⛔ HALT DETECTED: {symbol}")
