@@ -10,7 +10,7 @@ from flask import Flask
 # -----------------------------
 # Discord webhook
 # -----------------------------
-WEBHOOK_URL = os.environ.get("https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoL")
+WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 
 URL = "https://www.nyse.com/api/trade-halts/current/download"
 SEEN_FILE = "seen.json"
