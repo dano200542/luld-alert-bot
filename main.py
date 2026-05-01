@@ -21,7 +21,7 @@ def send_discord(msg):
         print("Discord error:", e)
 
 def fetch_data():
-    r = requests.get(URL, timeout=10)
+    r = requests.get(URL, timeout=5)
     r.raise_for_status()
     return r.text
 
