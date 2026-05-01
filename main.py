@@ -2,15 +2,28 @@ import os
 import time
 import csv
 import requests
-from io import StringIO
 import json
+from io import StringIO
+from threading import Thread
+from flask import Flask
 
+# -----------------------------
 # Discord webhook
+# -----------------------------
 WEBHOOK_URL = os.environ.get("https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoL")
 
 URL = "https://www.nyse.com/api/trade-halts/current/download"
-
 SEEN_FILE = "seen.json"
+
+app = Flask(__name__)
+
+
+# -----------------------------
+# Web server (FIX FOR RENDER)
+# -----------------------------
+@app.route("/")
+def home():
+    return "LULD bot running"
 
 
 # -----------------------------
@@ -22,6 +35,7 @@ def load_seen():
             return set(json.load(f))
     except:
         return set()
+
 
 def save_seen(seen):
     try:
@@ -58,7 +72,7 @@ def fetch_data():
 
 
 # -----------------------------
-# Process CSV
+# Process data
 # -----------------------------
 def process(csv_text):
     global seen
@@ -72,7 +86,6 @@ def process(csv_text):
         if not symbol:
             continue
 
-        # ONLY LULD HALTS
         if "LULD" not in reason:
             continue
 
@@ -92,21 +105,26 @@ def process(csv_text):
 
 
 # -----------------------------
-# Main loop
+# Bot loop (background thread)
 # -----------------------------
-def main():
+def bot_loop():
     print("LULD bot running...")
 
     while True:
         try:
             csv_text = fetch_data()
             process(csv_text)
-
         except Exception as e:
             print("Error:", e)
 
-        time.sleep(10)  # faster polling = lower latency
+        time.sleep(10)
 
 
+# -----------------------------
+# Start everything
+# -----------------------------
 if __name__ == "__main__":
-    main()
+    Thread(target=bot_loop, daemon=True).start()
+
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
