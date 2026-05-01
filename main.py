@@ -95,7 +95,19 @@ def process(csv_text):
             f"Symbol: {symbol}\n"
             f"Reason: {reason}"
         )
+def bot_loop():
+    print("🚨 BOT LOOP STARTED")
 
+    send_discord("🧪 BOT STARTED TEST MESSAGE")
+
+    while True:
+        try:
+            csv_text = fetch_data()
+            process(csv_text)
+        except Exception as e:
+            print("ERROR:", e)
+
+        time.sleep(10)
 # -----------------------------
 # BOT LOOP
 # -----------------------------
