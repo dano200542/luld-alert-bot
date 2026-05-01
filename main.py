@@ -1,135 +1,51 @@
 import os
 import time
-import csv
 import requests
-import json
-from io import StringIO
-from threading import Thread
 from flask import Flask
+from threading import Thread
 
 # -----------------------------
-# DISCORD WEBHOOK (SET IN RENDER ENV VARS)
+# DISCORD WEBHOOK
 # -----------------------------
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
-
-URL = "https://www.nyse.com/api/trade-halts/current/download"
-SEEN_FILE = "seen.json"
 
 app = Flask(__name__)
 
 # -----------------------------
-# REQUIRED HEALTH CHECK (RENDER)
+# HEALTH CHECK (RENDER)
 # -----------------------------
 @app.route("/")
 def home():
-    return "LULD bot running"
+    return "Bot is alive"
 
 # -----------------------------
-# LOAD / SAVE SEEN
-# -----------------------------
-def load_seen():
-    try:
-        with open(SEEN_FILE, "r") as f:
-            return set(json.load(f))
-    except:
-        return set()
-
-def save_seen(seen):
-    try:
-        with open(SEEN_FILE, "w") as f:
-            json.dump(list(seen), f)
-    except:
-        pass
-
-seen = load_seen()
-
-# -----------------------------
-# DISCORD SENDER
+# DISCORD MESSAGE
 # -----------------------------
 def send_discord(msg):
     if not WEBHOOK_URL:
-        print("Missing DISCORD_WEBHOOK")
+        print("❌ DISCORD_WEBHOOK missing in environment")
         return
 
     try:
         requests.post(WEBHOOK_URL, json={"content": msg}, timeout=10)
+        print("✅ Sent to Discord")
     except Exception as e:
-        print("Discord error:", e)
+        print("❌ Discord error:", e)
 
 # -----------------------------
-# FETCH DATA
-# -----------------------------
-def fetch_data():
-    r = requests.get(URL, timeout=10)
-    r.raise_for_status()
-    return r.text
-
-# -----------------------------
-# PROCESS LULD DATA
-# -----------------------------
-def process(csv_text):
-    global seen
-
-    reader = csv.DictReader(StringIO(csv_text))
-
-    for row in reader:
-        symbol = row.get("Symbol") or row.get("symbol")
-        reason = (row.get("Reason") or row.get("reason") or "").strip().upper()
-
-        if not symbol:
-            continue
-
-        if "LULD" not in reason:
-            continue
-
-        key = f"{symbol}-{reason}"
-
-        if key in seen:
-            continue
-
-        seen.add(key)
-        save_seen(seen)
-
-        send_discord(
-            "🚨 NYSE LULD HALT\n"
-            f"Symbol: {symbol}\n"
-            f"Reason: {reason}"
-        )
-def bot_loop():
-    print("🚨 BOT LOOP STARTED")
-
-    send_discord("🧪 BOT STARTED TEST MESSAGE")
-
-    while True:
-        try:
-            csv_text = fetch_data()
-            process(csv_text)
-        except Exception as e:
-            print("ERROR:", e)
-
-        time.sleep(10)
-# -----------------------------
-# BOT LOOP
+# TEST LOOP (NO DATA, JUST PROOF)
 # -----------------------------
 def bot_loop():
-    print("LULD bot running...")
+    time.sleep(5)
 
-    # TEST MESSAGE (REMOVE ONLY IF YOU WANT LATER)
-    send_discord("🧪 BOT ONLINE TEST - if you see this, webhook works")
-
-    time.sleep(3)
+    send_discord("🧪 BOT IS ONLINE - Render deployment successful")
 
     while True:
-        try:
-            csv_text = fetch_data()
-            process(csv_text)
-        except Exception as e:
-            print("Error:", e)
-
-        time.sleep(10)
+        print("🟢 Bot still running...")
+        time.sleep(60)
 
 # -----------------------------
-# START SERVER + BOT
+# START APP
 # -----------------------------
 if __name__ == "__main__":
     Thread(target=bot_loop, daemon=True).start()
