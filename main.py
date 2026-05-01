@@ -1,34 +1,21 @@
 import os
 import time
 import requests
-from flask import Flask
-
-app = Flask(__name__)
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 
-@app.route("/")
-def home():
-    return "OK"
-
-def send_discord():
-    print("TRYING DISCORD")
-
-    if not WEBHOOK_URL:
-        print("NO WEBHOOK SET")
-        return
-
-    r = requests.post(WEBHOOK_URL, json={"content": "🧪 BOT IS RUNNING ON RENDER"})
+def send(msg):
+    print("SENDING...")
+    r = requests.post(WEBHOOK_URL, json={"content": msg}, timeout=10)
     print("STATUS:", r.status_code)
+    print("RESPONSE:", r.text)
 
-def run():
-    print("STARTED PYTHON FILE")
-    time.sleep(5)
-    send_discord()
+print("STARTED")
 
-    while True:
-        print("LOOP RUNNING")
-        time.sleep(30)
+time.sleep(5)
 
-if __name__ == "__main__":
-    run()
+send("🧪 TEST: BOT IS WORKING")
+
+while True:
+    print("ALIVE")
+    time.sleep(30)
