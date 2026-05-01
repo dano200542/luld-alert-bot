@@ -8,7 +8,7 @@ from threading import Thread
 from flask import Flask
 
 # -----------------------------
-# ENV VAR (SET IN RENDER)
+# DISCORD WEBHOOK (SET IN RENDER ENV VARS)
 # -----------------------------
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 
@@ -18,14 +18,14 @@ SEEN_FILE = "seen.json"
 app = Flask(__name__)
 
 # -----------------------------
-# HEALTH CHECK (REQUIRED FOR RENDER)
+# REQUIRED HEALTH CHECK (RENDER)
 # -----------------------------
 @app.route("/")
 def home():
     return "LULD bot running"
 
 # -----------------------------
-# LOAD / SAVE SEEN ALERTS
+# LOAD / SAVE SEEN
 # -----------------------------
 def load_seen():
     try:
@@ -65,7 +65,7 @@ def fetch_data():
     return r.text
 
 # -----------------------------
-# PROCESS DATA
+# PROCESS LULD DATA
 # -----------------------------
 def process(csv_text):
     global seen
@@ -74,7 +74,7 @@ def process(csv_text):
 
     for row in reader:
         symbol = row.get("Symbol") or row.get("symbol")
-        reason = (row.get("Reason") or row.get("reason") or "").upper()
+        reason = (row.get("Reason") or row.get("reason") or "").strip().upper()
 
         if not symbol:
             continue
@@ -101,6 +101,10 @@ def process(csv_text):
 # -----------------------------
 def bot_loop():
     print("LULD bot running...")
+
+    # TEST MESSAGE (REMOVE ONLY IF YOU WANT LATER)
+    send_discord("🧪 BOT ONLINE TEST - if you see this, webhook works")
+
     time.sleep(3)
 
     while True:
@@ -113,7 +117,7 @@ def bot_loop():
         time.sleep(10)
 
 # -----------------------------
-# START EVERYTHING (RENDER SAFE)
+# START SERVER + BOT
 # -----------------------------
 if __name__ == "__main__":
     Thread(target=bot_loop, daemon=True).start()
