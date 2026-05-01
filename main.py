@@ -3,9 +3,12 @@ import time
 import csv
 import requests
 from io import StringIO
+from threading import Thread
+from flask import Flask
+
+app = Flask(__name__)
 
 WEBHOOK_URL = os.environ.get("https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoL")
-
 URL = "https://www.nyse.com/api/trade-halts/current/download"
 
 seen = set()
@@ -27,7 +30,6 @@ def fetch_data():
 
 def process(csv_text):
     global seen
-
     reader = csv.DictReader(StringIO(csv_text))
 
     for row in reader:
@@ -48,25 +50,23 @@ def process(csv_text):
         seen.add(key)
 
         send_discord(
-            "🚨 NYSE LULD HALT\n"
-            f"Symbol: {symbol}\n"
-            f"Reason: {reason}"
+            f"🚨 NYSE LULD HALT\nSymbol: {symbol}\nReason: {reason}"
         )
 
-def main():
-    print("Starting LULD bot...")
-    time.sleep(3)
-
+def worker():
     print("LULD bot running...")
-
     while True:
         try:
-            data = fetch_data()
-            process(data)
+            csv_text = fetch_data()
+            process(csv_text)
         except Exception as e:
             print("Error:", e)
-
         time.sleep(30)
 
+@app.route("/")
+def home():
+    return "Bot is running"
+
 if __name__ == "__main__":
-    main()
+    Thread(target=worker).start()
+    app.run(host="0.0.0.0", port=10000)
