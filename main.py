@@ -1,21 +1,13 @@
 import os
-import time
-import requests
+from flask import Flask
 
-WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
+app = Flask(__name__)
 
-def send(msg):
-    print("SENDING...")
-    r = requests.post(WEBHOOK_URL, json={"content": msg}, timeout=10)
-    print("STATUS:", r.status_code)
-    print("RESPONSE:", r.text)
+@app.route("/")
+def home():
+    return "OK - LIVE"
 
-print("STARTED")
-
-time.sleep(5)
-
-send("🧪 TEST: BOT IS WORKING")
-
-while True:
-    print("ALIVE")
-    time.sleep(30)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    print("STARTING ON PORT", port)
+    app.run(host="0.0.0.0", port=port)
