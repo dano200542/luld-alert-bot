@@ -1,26 +1,22 @@
 import requests
-import os
+import time
 
-API_KEY = os.environ["GCAqzGwvpveABEjg92lZszGhAtbGJVYp"]
-WEBHOOK = os.environ["https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoLA"]
+API_KEY = "GCAqzGwvpveABEjg92lZszGhAtbGJVYp"
+WEBHOOK = "https://discord.com/api/webhooks/1463521320582250498/Oi0KYpKQzUVYLnRIKGSToqnrkfEd1A-BIPnDz5bmW7gsi5T46CrTzO7u2Eu1AuK1IoLA"
 
-# Example symbols to watch (we expand later)
-symbols = ["AAPL", "TSLA", "NVDA"]
 
-def send(msg):
+SYMBOLS = ["AAPL", "TSLA", "NVDA"]
+
+def alert(msg):
     requests.post(WEBHOOK, json={"content": msg})
 
-for symbol in symbols:
-    url = f"https://api.massive.com/v1/quote/{symbol}?apikey={API_KEY}"
-    r = requests.get(url).json()
+while True:
+    print("checking market...")
 
-    price = r.get("price", 0)
-    change = r.get("changePercent", 0)
+    for symbol in SYMBOLS:
+        url = f"https://api.massive.com/v1/quote/{symbol}?apikey={API_KEY}"
+        data = requests.get(url).json()
 
-    # 🚨 Spike detection (proxy for LULD)
-    if abs(change) > 5:
-        send(f"🚨 BIG MOVE: {symbol} {change:.2f}%")
+        print(symbol, data)
 
-    # 🚨 Halt detection (if API provides status field)
-    if r.get("status") == "halted":
-        send(f"⛔ HALT DETECTED: {symbol}")
+    time.sleep(60)
